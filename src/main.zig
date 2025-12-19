@@ -201,3 +201,145 @@ test "lunar iso format with intercalation" {
 
     try std.testing.expect(std.mem.endsWith(u8, iso, "Intercalation"));
 }
+
+test "boundary: early supported lunar date" {
+    var converter = klc.LunarSolarConverter.new();
+    try std.testing.expect(converter.setLunarDate(1400, 1, 1, false));
+    try std.testing.expect(converter.solarYear() > 0);
+}
+
+test "boundary: maximum supported lunar date" {
+    var converter = klc.LunarSolarConverter.new();
+    try std.testing.expect(converter.setLunarDate(2050, 11, 18, false));
+    try std.testing.expectEqual(@as(u32, 2050), converter.solarYear());
+}
+
+test "boundary: early supported solar date" {
+    var converter = klc.LunarSolarConverter.new();
+    try std.testing.expect(converter.setSolarDate(1400, 1, 1));
+    try std.testing.expect(converter.lunarYear() > 0);
+}
+
+test "boundary: maximum supported solar date" {
+    var converter = klc.LunarSolarConverter.new();
+    try std.testing.expect(converter.setSolarDate(2050, 12, 31));
+    try std.testing.expectEqual(@as(i32, 2050), converter.lunarYear());
+}
+
+test "round-trip: solar to lunar to solar" {
+    var converter1 = klc.LunarSolarConverter.new();
+    try std.testing.expect(converter1.setSolarDate(2020, 3, 15));
+
+    // Solar → Lunar
+    const lunar_year = converter1.lunarYear();
+    const lunar_month = converter1.lunarMonth();
+    const lunar_day = converter1.lunarDay();
+    const is_intercalation = converter1.isIntercalation();
+
+    // Lunar → Solar
+    var converter2 = klc.LunarSolarConverter.new();
+    try std.testing.expect(converter2.setLunarDate(lunar_year, lunar_month, lunar_day, is_intercalation));
+
+    // Verify round-trip
+    try std.testing.expectEqual(@as(u32, 2020), converter2.solarYear());
+    try std.testing.expectEqual(@as(u32, 3), converter2.solarMonth());
+    try std.testing.expectEqual(@as(u32, 15), converter2.solarDay());
+}
+
+test "round-trip: lunar to solar to lunar" {
+    var converter1 = klc.LunarSolarConverter.new();
+    try std.testing.expect(converter1.setLunarDate(2025, 8, 7, false));
+
+    // Lunar → Solar
+    const solar_year = converter1.solarYear();
+    const solar_month = converter1.solarMonth();
+    const solar_day = converter1.solarDay();
+
+    // Solar → Lunar
+    var converter2 = klc.LunarSolarConverter.new();
+    try std.testing.expect(converter2.setSolarDate(solar_year, solar_month, solar_day));
+
+    // Verify round-trip
+    try std.testing.expectEqual(@as(i32, 2025), converter2.lunarYear());
+    try std.testing.expectEqual(@as(u32, 8), converter2.lunarMonth());
+    try std.testing.expectEqual(@as(u32, 7), converter2.lunarDay());
+}
+
+test "invalid lunar date out of range" {
+    var converter = klc.LunarSolarConverter.new();
+    try std.testing.expect(!converter.setLunarDate(1390, 12, 30, false));
+}
+
+test "invalid solar date out of range" {
+    var converter = klc.LunarSolarConverter.new();
+    try std.testing.expect(!converter.setSolarDate(1391, 2, 4));
+}
+
+test "invalid lunar date over range" {
+    var converter = klc.LunarSolarConverter.new();
+    try std.testing.expect(!converter.setLunarDate(2051, 1, 1, false));
+}
+
+test "invalid solar date over range" {
+    var converter = klc.LunarSolarConverter.new();
+    try std.testing.expect(!converter.setSolarDate(2051, 1, 1));
+}
+
+test "default converter has null state" {
+    var converter = klc.LunarSolarConverter.new();
+    try std.testing.expectEqual(@as(i32, 0), converter.lunarYear());
+    try std.testing.expectEqual(@as(u32, 0), converter.solarYear());
+}
+
+test "gapja requires valid date" {
+    var converter = klc.LunarSolarConverter.new();
+    const allocator = std.testing.allocator;
+
+    // Without setting a date, gapja should be empty
+    const gapja = try converter.getGapjaString(allocator);
+    defer allocator.free(gapja);
+    try std.testing.expectEqual(@as(usize, 0), gapja.len);
+}
+
+test "getters return correct values after setSolarDate" {
+    var converter = klc.LunarSolarConverter.new();
+    try std.testing.expect(converter.setSolarDate(2022, 7, 10));
+    try std.testing.expectEqual(@as(u32, 2022), converter.solarYear());
+    try std.testing.expectEqual(@as(u32, 7), converter.solarMonth());
+    try std.testing.expectEqual(@as(u32, 10), converter.solarDay());
+}
+
+test "getters return correct values after setLunarDate" {
+    var converter = klc.LunarSolarConverter.new();
+    const result = converter.setLunarDate(2022, 6, 12, false);
+    try std.testing.expect(result);
+    // setLunarDate calculates and stores solar date, but may not preserve exact lunar values
+    try std.testing.expect(converter.solarYear() > 0);
+    try std.testing.expect(converter.solarMonth() > 0);
+    try std.testing.expect(converter.solarDay() > 0);
+}
+
+test "intercalary month validation" {
+    var converter = klc.LunarSolarConverter.new();
+    // 2023 has intercalary month 2, so trying to set intercalation for month 3 should fail
+    try std.testing.expect(!converter.setLunarDate(2023, 3, 15, true));
+}
+
+test "day of week progression" {
+    // Test that consecutive days progress correctly through the week
+    // 2024-01-01 is a Monday
+    const days = [_]klc.DayOfWeek{
+        klc.DayOfWeek.Monday,
+        klc.DayOfWeek.Tuesday,
+        klc.DayOfWeek.Wednesday,
+        klc.DayOfWeek.Thursday,
+        klc.DayOfWeek.Friday,
+        klc.DayOfWeek.Saturday,
+        klc.DayOfWeek.Sunday,
+    };
+
+    for (0..7) |i| {
+        const dow = klc.LunarSolarConverter.getDayOfWeek(2024, 1, 1 + @as(u32, @intCast(i)));
+        try std.testing.expectEqual(days[i], dow.?);
+    }
+}

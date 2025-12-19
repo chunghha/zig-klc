@@ -1,5 +1,19 @@
 const std = @import("std");
 
+/// Korean Lunar-Solar Calendar Converter
+///
+/// This module converts between Korean lunar calendar (음력) and Gregorian solar calendar (양력)
+/// dates, supporting dates from 1391-01-01 (lunar) / 1391-02-05 (solar) to 2050-11-18 (lunar) / 2050-12-31 (solar).
+///
+/// The implementation correctly handles the Gregorian calendar reform of October 1582,
+/// where dates 1582-10-05 through 1582-10-14 do not exist. Dates before 1582-10-05 use
+/// the Julian calendar rules, while dates from 1582-10-15 onward use Gregorian rules.
+///
+/// Intercalary (leap) months (윤달) are supported and tracked via the pre-calculated
+/// KOREAN_LUNAR_DATA array derived from astronomical calculations.
+///
+/// Gapja (간지) calculation supports the traditional sexagenary cycle (60-year cycle)
+/// for years, months, and days in both Korean and Chinese character representations.
 /// Represents the days of the week.
 pub const DayOfWeek = enum {
     /// Monday (월요일)
@@ -31,10 +45,14 @@ pub const DayOfWeek = enum {
     }
 };
 
-const KOREAN_LUNAR_MIN_VALUE: u32 = 13910101;
-const KOREAN_LUNAR_MAX_VALUE: u32 = 20501118;
-const KOREAN_SOLAR_MIN_VALUE: u32 = 13910205;
-const KOREAN_SOLAR_MAX_VALUE: u32 = 20501231;
+/// Supported date ranges (minimum lunar date: 1391-01-01)
+pub const KOREAN_LUNAR_MIN_VALUE: u32 = 13910101;
+/// Supported date ranges (maximum lunar date: 2050-11-18)
+pub const KOREAN_LUNAR_MAX_VALUE: u32 = 20501118;
+/// Supported date ranges (minimum solar date: 1391-02-05)
+pub const KOREAN_SOLAR_MIN_VALUE: u32 = 13910205;
+/// Supported date ranges (maximum solar date: 2050-12-31)
+pub const KOREAN_SOLAR_MAX_VALUE: u32 = 20501231;
 
 const KOREAN_LUNAR_BASE_YEAR: i32 = 1391;
 const SOLAR_LUNAR_DAY_DIFF: u32 = 35;
@@ -212,23 +230,29 @@ pub const LunarSolarConverter = struct {
         return (lunarData >> 17) & 0x01ff;
     }
 
+    /// Returns true if the given lunar month (1-12) is a 30-day month in the given year.
+    fn isLunarMonthBig(year: i32, month: u32) bool {
+        const lunarData = getLunarData(year);
+        if (month > 0 and month < 13) {
+            const bitPos = 12 - month;
+            return ((lunarData >> @as(u5, @intCast(bitPos))) & 0x01) != 0;
+        }
+        return false;
+    }
+
+    /// Returns true if the intercalary month is a 30-day month in the given year.
+    fn isIntercalaryMonthBig(lunarData: u32) bool {
+        return ((lunarData >> 16) & 0x01) != 0;
+    }
+
     fn getLunarDays(year: i32, month: u32, is_intercalation_param: bool) u32 {
         const lunarData = getLunarData(year);
         const intercalationMonth = getLunarIntercalationMonth(lunarData);
 
         if (is_intercalation_param and intercalationMonth == month) {
-            if (((lunarData >> 16) & 0x01) != 0) {
-                return LUNAR_BIG_MONTH_DAY;
-            } else {
-                return LUNAR_SMALL_MONTH_DAY;
-            }
+            return if (isIntercalaryMonthBig(lunarData)) LUNAR_BIG_MONTH_DAY else LUNAR_SMALL_MONTH_DAY;
         } else if (month > 0 and month < 13) {
-            const bitPos = 12 - month;
-            if (((lunarData >> @as(u5, @intCast(bitPos))) & 0x01) != 0) {
-                return LUNAR_BIG_MONTH_DAY;
-            } else {
-                return LUNAR_SMALL_MONTH_DAY;
-            }
+            return if (isLunarMonthBig(year, month)) LUNAR_BIG_MONTH_DAY else LUNAR_SMALL_MONTH_DAY;
         }
 
         return 0;
@@ -465,12 +489,30 @@ pub const LunarSolarConverter = struct {
         return isValid;
     }
 
+    /// Checks if all gapja indices (year, month, day) have been calculated and are valid.
+    fn areGapjaIndicesValid(self: LunarSolarConverter) bool {
+        return self.gapja_year_inx[0] != null and self.gapja_year_inx[1] != null and
+            self.gapja_month_inx[0] != null and self.gapja_month_inx[1] != null and
+            self.gapja_day_inx[0] != null and self.gapja_day_inx[1] != null;
+    }
+
+    /// Calculates gapja indices using the sexagenary cycle (60-year cycle).
+    ///
+    /// Gapja (간지) represents a date using two components:
+    /// - Cheongan (천간): 10-element cycle (甲乙丙丁戊己庚辛壬癸)
+    /// - Ganji (지지): 12-element cycle (子丑寅卯辰巳午未申酉戌亥)
+    /// These combine to form a 60-year (10*12) cycle.
+    ///
+    /// Year gapja: offset by +7 from base year (astronomical convention)
+    /// Month gapja: offset by +5 for Cheongan, +1 for Ganji
+    /// Day gapja: offset by +4 for Cheongan, +0 for Ganji
     fn getGapja(self: *LunarSolarConverter) void {
         const absDays = getLunarAbsDays(self.lunar_year, self.lunar_month, self.lunar_day, self.is_intercalation);
 
         if (absDays > 0) {
-            self.gapja_year_inx[0] = @as(usize, @intCast((self.lunar_year + 7) - KOREAN_LUNAR_BASE_YEAR)) % KOREAN_CHEONGAN.len;
-            self.gapja_year_inx[1] = @as(usize, @intCast((self.lunar_year + 7) - KOREAN_LUNAR_BASE_YEAR)) % KOREAN_GANJI.len;
+            const yearOffset = @as(usize, @intCast((self.lunar_year + 7) - KOREAN_LUNAR_BASE_YEAR));
+            self.gapja_year_inx[0] = yearOffset % KOREAN_CHEONGAN.len;
+            self.gapja_year_inx[1] = yearOffset % KOREAN_GANJI.len;
 
             var monthCount = self.lunar_month;
             monthCount += 12 * @as(u32, @intCast(self.lunar_year - KOREAN_LUNAR_BASE_YEAR));
@@ -493,11 +535,7 @@ pub const LunarSolarConverter = struct {
     pub fn getGapjaString(self: *LunarSolarConverter, allocator: std.mem.Allocator) ![]u8 {
         self.getGapja();
 
-        // Validate all indices before building string
-        if (self.gapja_year_inx[0] == null or self.gapja_year_inx[1] == null or
-            self.gapja_month_inx[0] == null or self.gapja_month_inx[1] == null or
-            self.gapja_day_inx[0] == null or self.gapja_day_inx[1] == null)
-        {
+        if (!self.areGapjaIndicesValid()) {
             return try allocator.dupe(u8, "");
         }
 
@@ -537,11 +575,7 @@ pub const LunarSolarConverter = struct {
     pub fn getChineseGapjaString(self: *LunarSolarConverter, allocator: std.mem.Allocator) ![]u8 {
         self.getGapja();
 
-        // Validate all indices before building string
-        if (self.gapja_year_inx[0] == null or self.gapja_year_inx[1] == null or
-            self.gapja_month_inx[0] == null or self.gapja_month_inx[1] == null or
-            self.gapja_day_inx[0] == null or self.gapja_day_inx[1] == null)
-        {
+        if (!self.areGapjaIndicesValid()) {
             return try allocator.dupe(u8, "");
         }
 
@@ -600,6 +634,9 @@ pub const LunarSolarConverter = struct {
     /// The JDN is the integer number of days elapsed since noon UTC on January 1, 4713 BC (Julian calendar).
     /// This implementation uses the algorithm described on Wikipedia and other sources,
     /// correctly handling the transition from the Julian to the Gregorian calendar in October 1582.
+    ///
+    /// The algorithm adjusts the month and year before calculation: January and February are
+    /// treated as months 13 and 14 of the previous year. This simplifies the leap year calculations.
     ///
     /// Arguments:
     /// - year: The solar year.
