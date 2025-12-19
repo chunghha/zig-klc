@@ -1,6 +1,22 @@
-# 예제 (Examples)
+# Korean Lunar-Solar Calendar Library (Zig)
 
-한국 양음력 변환 라이브러리의 사용 방법을 보여주는 예제들입니다.
+[![Zig](https://img.shields.io/badge/Zig-0.13+-blue.svg)](https://ziglang.org/)
+
+This is a **Zig port** of the [rs-klc](https://crates.io/crates/rs-klc) Rust crate, providing accurate Korean Lunar-Solar calendar conversions.
+
+한국 양음력 변환을 위한 Zig 라이브러리로, Rust의 rs-klc 크레이트를 Zig로 포팅한 것입니다.
+
+## Features
+
+- **Accurate conversions**: Between Gregorian (Solar) and Korean Lunar calendars
+- **Gapja (Sexagenary cycle)**: Traditional Korean/Chinese date representation
+- **Julian Day Numbers**: Astronomical date calculations
+- **Leap year/month handling**: Proper intercalary month detection
+- **Day of week calculation**: Based on Julian Day Number
+- **Memory safe**: Leveraging Zig's compile-time safety
+- **KASI verified**: Algorithms validated against Korea Astronomy and Space Science Institute
+
+## Examples
 
 Examples demonstrating how to use the Korean Lunar-Solar Calendar Conversion library.
 
