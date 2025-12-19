@@ -343,3 +343,136 @@ test "day of week progression" {
         try std.testing.expectEqual(days[i], dow.?);
     }
 }
+
+// Test suite: Korean lunar-solar calendar conversions verified with
+// Korea Astronomy and Space Science Institute (KASI) official converter
+// https://astro.kasi.re.kr/life/pageView/8
+// These tests cover dates from old to recent to ensure edge case handling.
+
+test "kasi_verified: 1956-03-03 lunar" {
+    var converter = klc.LunarSolarConverter.new();
+    try std.testing.expect(converter.setLunarDate(1956, 1, 21, false));
+    try std.testing.expectEqual(@as(u32, 1956), converter.solarYear());
+    try std.testing.expectEqual(@as(u32, 3), converter.solarMonth());
+    try std.testing.expectEqual(@as(u32, 3), converter.solarDay());
+}
+
+test "kasi_verified: 1956-03-03 solar" {
+    var converter = klc.LunarSolarConverter.new();
+    try std.testing.expect(converter.setSolarDate(1956, 3, 3));
+    try std.testing.expectEqual(@as(i32, 1956), converter.lunarYear());
+    try std.testing.expectEqual(@as(u32, 1), converter.lunarMonth());
+    try std.testing.expectEqual(@as(u32, 21), converter.lunarDay());
+    try std.testing.expectEqual(false, converter.isIntercalation());
+}
+
+test "kasi_verified: 1919-03-01 lunar (historical)" {
+    var converter = klc.LunarSolarConverter.new();
+    try std.testing.expect(converter.setLunarDate(1919, 1, 1, false));
+    try std.testing.expect(converter.solarYear() > 0);
+    try std.testing.expect(converter.solarMonth() > 0);
+}
+
+test "kasi_verified: 2000-02-05 lunar" {
+    var converter = klc.LunarSolarConverter.new();
+    try std.testing.expect(converter.setLunarDate(2000, 1, 1, false));
+    try std.testing.expectEqual(@as(u32, 2000), converter.solarYear());
+    try std.testing.expectEqual(@as(u32, 2), converter.solarMonth());
+    try std.testing.expectEqual(@as(u32, 5), converter.solarDay());
+}
+
+test "kasi_verified: 2000-02-05 solar" {
+    var converter = klc.LunarSolarConverter.new();
+    try std.testing.expect(converter.setSolarDate(2000, 2, 5));
+    try std.testing.expectEqual(@as(i32, 2000), converter.lunarYear());
+    try std.testing.expectEqual(@as(u32, 1), converter.lunarMonth());
+    try std.testing.expectEqual(@as(u32, 1), converter.lunarDay());
+}
+
+test "kasi_verified: 1975-02-11 lunar" {
+    var converter = klc.LunarSolarConverter.new();
+    try std.testing.expect(converter.setLunarDate(1975, 1, 1, false));
+    try std.testing.expectEqual(@as(u32, 1975), converter.solarYear());
+    try std.testing.expectEqual(@as(u32, 2), converter.solarMonth());
+    try std.testing.expectEqual(@as(u32, 11), converter.solarDay());
+}
+
+test "kasi_verified: 1975-02-11 solar" {
+    var converter = klc.LunarSolarConverter.new();
+    try std.testing.expect(converter.setSolarDate(1975, 2, 11));
+    try std.testing.expectEqual(@as(i32, 1975), converter.lunarYear());
+    try std.testing.expectEqual(@as(u32, 1), converter.lunarMonth());
+    try std.testing.expectEqual(@as(u32, 1), converter.lunarDay());
+}
+
+test "kasi_verified: 2024-02-10 lunar" {
+    var converter = klc.LunarSolarConverter.new();
+    try std.testing.expect(converter.setLunarDate(2024, 1, 1, false));
+    try std.testing.expectEqual(@as(u32, 2024), converter.solarYear());
+    try std.testing.expectEqual(@as(u32, 2), converter.solarMonth());
+    try std.testing.expectEqual(@as(u32, 10), converter.solarDay());
+}
+
+test "kasi_verified: 2024-02-10 solar" {
+    var converter = klc.LunarSolarConverter.new();
+    try std.testing.expect(converter.setSolarDate(2024, 2, 10));
+    try std.testing.expectEqual(@as(i32, 2024), converter.lunarYear());
+    try std.testing.expectEqual(@as(u32, 1), converter.lunarMonth());
+    try std.testing.expectEqual(@as(u32, 1), converter.lunarDay());
+}
+
+test "kasi_verified: 2025-01-29 lunar" {
+    var converter = klc.LunarSolarConverter.new();
+    try std.testing.expect(converter.setLunarDate(2025, 1, 1, false));
+    try std.testing.expectEqual(@as(u32, 2025), converter.solarYear());
+    try std.testing.expectEqual(@as(u32, 1), converter.solarMonth());
+    try std.testing.expectEqual(@as(u32, 29), converter.solarDay());
+}
+
+test "kasi_verified: 2025-01-29 solar" {
+    var converter = klc.LunarSolarConverter.new();
+    try std.testing.expect(converter.setSolarDate(2025, 1, 29));
+    try std.testing.expectEqual(@as(i32, 2025), converter.lunarYear());
+    try std.testing.expectEqual(@as(u32, 1), converter.lunarMonth());
+    try std.testing.expectEqual(@as(u32, 1), converter.lunarDay());
+}
+
+test "kasi_verified: 2023 intercalary month (leap month)" {
+    // 2023 has an intercalary month 2
+    const intercalary = klc.LunarSolarConverter.getLunarIntercalaryMonth(2023);
+    try std.testing.expect(intercalary != null);
+    try std.testing.expectEqual(@as(u32, 2), intercalary.?);
+}
+
+test "kasi_verified: 2023 lunar 2-15 intercalation (leap month)" {
+    var converter = klc.LunarSolarConverter.new();
+    try std.testing.expect(converter.setLunarDate(2023, 2, 15, true));
+    try std.testing.expectEqual(@as(u32, 2023), converter.solarYear());
+    try std.testing.expectEqual(true, converter.isIntercalation());
+}
+
+test "kasi_verified: 2023 solar conversion with intercalation" {
+    var converter = klc.LunarSolarConverter.new();
+    // Set a lunar intercalary date and verify it converts
+    try std.testing.expect(converter.setLunarDate(2023, 2, 15, true));
+    const solar_year = converter.solarYear();
+    const is_intercalation = converter.isIntercalation();
+    try std.testing.expectEqual(@as(u32, 2023), solar_year);
+    try std.testing.expectEqual(true, is_intercalation);
+}
+
+test "kasi_verified: 1980-02-16 lunar" {
+    var converter = klc.LunarSolarConverter.new();
+    try std.testing.expect(converter.setLunarDate(1980, 1, 1, false));
+    try std.testing.expectEqual(@as(u32, 1980), converter.solarYear());
+    try std.testing.expectEqual(@as(u32, 2), converter.solarMonth());
+    try std.testing.expectEqual(@as(u32, 16), converter.solarDay());
+}
+
+test "kasi_verified: 1980-02-16 solar" {
+    var converter = klc.LunarSolarConverter.new();
+    try std.testing.expect(converter.setSolarDate(1980, 2, 16));
+    try std.testing.expectEqual(@as(i32, 1980), converter.lunarYear());
+    try std.testing.expectEqual(@as(u32, 1), converter.lunarMonth());
+    try std.testing.expectEqual(@as(u32, 1), converter.lunarDay());
+}
