@@ -34,14 +34,14 @@ jobs:
 
     - name: Run examples
       run: |
-        task example1
-        task example2
-        task example3
-        task example4
-        task example5
-        task example6
-        task example7
-        task example8
+        zig build example1
+        zig build example2
+        zig build example3
+        zig build example4
+        zig build example5
+        zig build example6
+        zig build example7
+        zig build example8
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
