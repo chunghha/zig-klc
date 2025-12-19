@@ -264,4 +264,20 @@ pub fn build(b: *std.Build) void {
     const example7_step = b.step("example7", "Run day of week example");
     const example7_run = b.addRunArtifact(example7_exe);
     example7_step.dependOn(&example7_run.step);
+
+    // Benchmark
+    const benchmark_exe = b.addExecutable(.{
+        .name = "benchmark",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/benchmark.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "klc", .module = mod },
+            },
+        }),
+    });
+    const benchmark_step = b.step("benchmark", "Run performance benchmark");
+    const benchmark_run = b.addRunArtifact(benchmark_exe);
+    benchmark_step.dependOn(&benchmark_run.step);
 }

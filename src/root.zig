@@ -1,5 +1,9 @@
 const std = @import("std");
 
+/// Version information
+pub const VERSION = "0.1.0";
+pub const DESCRIPTION = "Korean Lunar-Solar Calendar Converter (Zig port of rs-klc)";
+
 /// Korean Lunar-Solar Calendar Converter
 ///
 /// This module converts between Korean lunar calendar (음력) and Gregorian solar calendar (양력)

@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        zig-version: ['0.13.0', '0.15.2']
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Zig
+      uses: goto-bus-stop/setup-zig@v2
+      with:
+        version: ${{ matrix.zig-version }}
+
+    - name: Check formatting
+      run: zig fmt --check src/ build.zig
+
+    - name: Build
+      run: zig build
+
+    - name: Run tests
+      run: zig build test
+
+    - name: Run examples
+      run: |
+        task example1
+        task example2
+        task example3
+        task example4
+        task example5
+        task example6
+        task example7
+        task example8

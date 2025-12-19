@@ -67,3 +67,8 @@ tasks:
     desc: Run comprehensive example
     cmds:
       - zig build example8
+
+  benchmark:
+    desc: Run performance benchmark
+    cmds:
+      - zig build benchmark
