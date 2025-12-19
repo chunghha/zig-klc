@@ -67,13 +67,7 @@ jobs:
       run: |
         VERSION=${GITHUB_REF#refs/tags/v}
         ARCHIVE_NAME=zig-klc-${VERSION}.tar.gz
-        tar -czf ${ARCHIVE_NAME} \
-          --exclude='.git' \
-          --exclude='.github' \
-          --exclude='.zig-cache' \
-          --exclude='zig-cache' \
-          --exclude='*.tar.gz' \
-          .
+        git archive --format=tar.gz --prefix=zig-klc-${VERSION}/ -o ${ARCHIVE_NAME} HEAD
 
     - name: Create GitHub release
       uses: actions/create-release@v1
