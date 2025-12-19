@@ -1,7 +1,7 @@
 const std = @import("std");
 
 /// Version information
-pub const VERSION = "0.1.4";
+pub const VERSION = "0.1.5";
 pub const DESCRIPTION = "Korean Lunar-Solar Calendar Converter (Zig port of rs-klc)";
 
 /// Korean Lunar-Solar Calendar Converter
