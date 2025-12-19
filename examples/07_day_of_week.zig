@@ -9,7 +9,6 @@ const klc = @import("klc");
 ///
 /// Calculate the day of the week for a given Gregorian date.
 /// This is calculated based on the Julian Day Number (JDN).
-
 pub fn main() !void {
     std.debug.print("=== 요일(Day of Week) 계산 ===\n\n", .{});
 
@@ -51,16 +50,6 @@ pub fn main() !void {
     std.debug.print("\n=== 연속된 날짜의 요일 패턴 ===\n\n", .{});
     std.debug.print("2024년 1월의 첫 7일:\n", .{});
 
-    const week_days = [_][]const u8{
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-        "Sunday",
-    };
-
     for (1..8) |day| {
         if (klc.LunarSolarConverter.getDayOfWeek(2024, 1, @as(u32, @intCast(day)))) |dow| {
             const dow_name = @tagName(dow);
@@ -80,7 +69,7 @@ pub fn main() !void {
         "일요일 (Sunday)",
     };
 
-    for (korean_days, 0..) |korean_day, i| {
+    for (korean_days) |korean_day| {
         std.debug.print("  {s}\n", .{korean_day});
     }
 }

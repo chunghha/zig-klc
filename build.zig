@@ -136,4 +136,132 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step("test", "Run tests");
     test_step.dependOn(&run_mod_tests.step);
     test_step.dependOn(&run_exe_tests.step);
+
+    // Example 8
+    const example8_exe = b.addExecutable(.{
+        .name = "example8",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("examples/08_comprehensive_example.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "klc", .module = mod },
+            },
+        }),
+    });
+    const example8_step = b.step("example8", "Run comprehensive example");
+    const example8_run = b.addRunArtifact(example8_exe);
+    example8_step.dependOn(&example8_run.step);
+
+    // Example 1
+    const example1_exe = b.addExecutable(.{
+        .name = "example1",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("examples/01_basic_conversion.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "klc", .module = mod },
+            },
+        }),
+    });
+    const example1_step = b.step("example1", "Run basic conversion example");
+    const example1_run = b.addRunArtifact(example1_exe);
+    example1_step.dependOn(&example1_run.step);
+
+    // Example 2
+    const example2_exe = b.addExecutable(.{
+        .name = "example2",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("examples/02_lunar_to_solar.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "klc", .module = mod },
+            },
+        }),
+    });
+    const example2_step = b.step("example2", "Run lunar to solar example");
+    const example2_run = b.addRunArtifact(example2_exe);
+    example2_step.dependOn(&example2_run.step);
+
+    // Example 3
+    const example3_exe = b.addExecutable(.{
+        .name = "example3",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("examples/03_intercalary_month.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "klc", .module = mod },
+            },
+        }),
+    });
+    const example3_step = b.step("example3", "Run intercalary month example");
+    const example3_run = b.addRunArtifact(example3_exe);
+    example3_step.dependOn(&example3_run.step);
+
+    // Example 4
+    const example4_exe = b.addExecutable(.{
+        .name = "example4",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("examples/04_gapja_sexagenary.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "klc", .module = mod },
+            },
+        }),
+    });
+    const example4_step = b.step("example4", "Run gapja sexagenary example");
+    const example4_run = b.addRunArtifact(example4_exe);
+    example4_step.dependOn(&example4_run.step);
+
+    // Example 5
+    const example5_exe = b.addExecutable(.{
+        .name = "example5",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("examples/05_julian_day_number.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "klc", .module = mod },
+            },
+        }),
+    });
+    const example5_step = b.step("example5", "Run julian day number example");
+    const example5_run = b.addRunArtifact(example5_exe);
+    example5_step.dependOn(&example5_run.step);
+
+    // Example 6
+    const example6_exe = b.addExecutable(.{
+        .name = "example6",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("examples/06_leap_year.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "klc", .module = mod },
+            },
+        }),
+    });
+    const example6_step = b.step("example6", "Run leap year example");
+    const example6_run = b.addRunArtifact(example6_exe);
+    example6_step.dependOn(&example6_run.step);
+
+    // Example 7
+    const example7_exe = b.addExecutable(.{
+        .name = "example7",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("examples/07_day_of_week.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "klc", .module = mod },
+            },
+        }),
+    });
+    const example7_step = b.step("example7", "Run day of week example");
+    const example7_run = b.addRunArtifact(example7_exe);
+    example7_step.dependOn(&example7_run.step);
 }

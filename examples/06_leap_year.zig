@@ -13,7 +13,6 @@ const klc = @import("klc");
 /// - Divisible by 4 → leap year
 /// - Divisible by 100 → not a leap year
 /// - Divisible by 400 → leap year
-
 pub fn main() !void {
     std.debug.print("=== 윤년(Leap Year) 판정 ===\n\n", .{});
 
@@ -35,18 +34,18 @@ pub fn main() !void {
 
     var correct_count: u32 = 0;
 
-    for (test_years) |test| {
-        const is_leap = klc.LunarSolarConverter.isSolarLeapYear(test.year);
-        const status = if (is_leap == test.expected) "✓" else "✗";
+    for (test_years) |t| {
+        const is_leap = klc.LunarSolarConverter.isSolarLeapYear(t.year);
+        const status = if (is_leap == t.expected) "✓" else "✗";
 
-        std.debug.print("{d}: {s} {}\n", .{
-            test.year,
+        std.debug.print("{d}: {s} {s}\n", .{
+            t.year,
             if (is_leap) "윤년 (Leap)" else "평년 (Regular)",
             status,
         });
-        std.debug.print("  사유: {s}\n\n", .{test.reason});
+        std.debug.print("  사유: {s}\n\n", .{t.reason});
 
-        if (is_leap == test.expected) {
+        if (is_leap == t.expected) {
             correct_count += 1;
         }
     }

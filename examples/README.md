@@ -159,6 +159,25 @@ zig build example1
 zig build example8
 ```
 
+### Taskfile을 사용한 실행
+
+프로젝트의 `Taskfile.yml`를 사용하여 편리하게 예제를 실행할 수 있습니다:
+
+```bash
+task example1
+task example8
+```
+
+사용 가능한 모든 예제 태스크:
+- `task example1`: 기본 양력-음력 변환
+- `task example2`: 음력-양력 역변환
+- `task example3`: 윤달 처리
+- `task example4`: 간지 계산
+- `task example5`: 율리우스 적일 계산
+- `task example6`: 윤년 판정
+- `task example7`: 요일 계산
+- `task example8`: 종합 예제
+
 ---
 
 ## 메모리 관리 (Memory Management)

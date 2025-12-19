@@ -27,3 +27,43 @@ tasks:
     desc: Clean the build directory
     cmds:
       - zig build clean
+
+  example1:
+    desc: Run basic conversion example
+    cmds:
+      - zig build example1
+
+  example2:
+    desc: Run lunar to solar example
+    cmds:
+      - zig build example2
+
+  example3:
+    desc: Run intercalary month example
+    cmds:
+      - zig build example3
+
+  example4:
+    desc: Run gapja sexagenary example
+    cmds:
+      - zig build example4
+
+  example5:
+    desc: Run julian day number example
+    cmds:
+      - zig build example5
+
+  example6:
+    desc: Run leap year example
+    cmds:
+      - zig build example6
+
+  example7:
+    desc: Run day of week example
+    cmds:
+      - zig build example7
+
+  example8:
+    desc: Run comprehensive example
+    cmds:
+      - zig build example8
